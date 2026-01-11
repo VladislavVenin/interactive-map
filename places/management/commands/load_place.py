@@ -16,11 +16,12 @@ def create_file(file_path, content):
         file.write(content)
 
 
-def add_image_to_db(file_path, filename, place):
+def add_image_to_db(file_path, filename, place, order):
     with open(file_path, 'rb') as file:
         PlaceImage.objects.create(
             place=place,
-            img=File(file, name=filename)
+            img=File(file, name=filename),
+            order=order
         )
 
 
@@ -42,16 +43,16 @@ class Command(BaseCommand):
             lng=response_payload["coordinates"]["lng"],
             lat=response_payload["coordinates"]["lat"],
         )
-        for url in response_payload["imgs"]:
+        for index, url in enumerate(response_payload["imgs"], start=1):
             image_response = requests.get(url)
             if image_response.status_code == 200:
                 filename = get_filename(url)
                 file_path = f'media/{filename}'
                 if not os.path.exists(file_path):
                     create_file(file_path, image_response.content)
-                    add_image_to_db(file_path, filename, place[0])
+                    add_image_to_db(file_path, filename, place[0], index)
                 else:
-                    add_image_to_db(file_path, filename, place[0])
+                    add_image_to_db(file_path, filename, place[0], index)
                 os.remove(file_path)
 
         self.stdout.write(
