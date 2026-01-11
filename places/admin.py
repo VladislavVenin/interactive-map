@@ -4,10 +4,17 @@ from django.utils.html import format_html
 from .models import Place, PlaceImage
 
 
+class ImageInline(admin.TabularInline):
+    model = PlaceImage
+
+
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
     list_display = ('title', 'description_short', 'lng', 'lat')
     search_fields = ('title',)
+    inlines = [
+        ImageInline,
+    ]
 
 
 @admin.register(PlaceImage)
