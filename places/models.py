@@ -17,3 +17,22 @@ class Place(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PlaceImage(models.Model):
+    place = models.ForeignKey(
+        Place,
+        verbose_name="Место",
+        related_name="images",
+        on_delete=models.CASCADE
+    )
+    img = models.ImageField("Изображение")
+    order = models.PositiveIntegerField("Порядковый номер")
+
+    class Meta:
+        ordering = ('place',)
+        verbose_name = 'Изображение'
+        verbose_name_plural = 'Изображения'
+
+    def __str__(self):
+        return f"{self.order} - {self.place.title}"
