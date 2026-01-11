@@ -3,3 +3,4 @@ django-cleanup==9.0.*
 pillow==12.1.*
 django-admin-sortable2==2.3
 environs==14.5.0
+django-tinymce==5.0.0
