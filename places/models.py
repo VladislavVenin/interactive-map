@@ -30,7 +30,7 @@ class PlaceImage(models.Model):
     order = models.PositiveIntegerField("Порядковый номер")
 
     class Meta:
-        ordering = ('place',)
+        ordering = ('place', 'order')
         verbose_name = 'Изображение'
         verbose_name_plural = 'Изображения'
 
