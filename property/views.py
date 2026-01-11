@@ -1,5 +1,5 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 
 
 def show_index(request):
-    return HttpResponse("<h1>Main page</h1>")
+    return render(request, 'index.html')
