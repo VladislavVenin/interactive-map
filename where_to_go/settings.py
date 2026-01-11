@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'places',
     'django_cleanup.apps.CleanupConfig',
     'adminsortable2',
+    'tinymce',
 ]
 
 MIDDLEWARE = [
