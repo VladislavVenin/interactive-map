@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'places',
     'django_cleanup.apps.CleanupConfig',
+    'adminsortable2',
 ]
 
 MIDDLEWARE = [

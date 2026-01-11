@@ -1,7 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
 
 class Place(models.Model):
     title = models.CharField("Название", max_length=80)
@@ -27,10 +25,15 @@ class PlaceImage(models.Model):
         on_delete=models.CASCADE
     )
     img = models.ImageField("Изображение")
-    order = models.PositiveIntegerField("Порядковый номер")
+    order = models.PositiveIntegerField(
+        "Порядковый номер",
+        default=0,
+        blank=False,
+        null=False
+    )
 
     class Meta:
-        ordering = ('place', 'order')
+        ordering = ('order',)
         verbose_name = 'Изображение'
         verbose_name_plural = 'Изображения'
 
