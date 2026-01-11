@@ -4,9 +4,21 @@ from django.utils.html import format_html
 from .models import Place, PlaceImage
 
 
+def preview_image(obj):
+    if obj.img:
+        return format_html('<img src="{}" height="200" />', obj.img.url)
+    return "Нет изображения"
+
+
 class ImageInline(admin.TabularInline):
     model = PlaceImage
+    fields = ('place', 'order', 'img', 'image_preview')
+    readonly_fields = ('image_preview',)
+    extra = 1
 
+    def image_preview(self, obj):
+        return preview_image(obj)
+    image_preview.short_description = "Фото"
 
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
@@ -24,7 +36,5 @@ class PlaceImageAdmin(admin.ModelAdmin):
     search_fields = ('place',)
 
     def image_preview(self, obj):
-        if obj.img:
-            return format_html('<img src="{}" width="200" />', obj.img.url)
-        return "Нет изображения"
+        return preview_image(obj)
     image_preview.short_description = "Фото"
