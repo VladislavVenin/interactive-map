@@ -1,8 +1,9 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
 from places.models import Place, PlaceImage
 from urllib.parse import urlparse
 import requests
+from requests.exceptions import HTTPError
 import os
 
 
@@ -33,7 +34,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         response = requests.get(options["link"])
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            error_message = f"Ошибка {response.status_code} при подключении к {options["link"]}"
+            raise CommandError(error_message)
+
         response_payload = response.json()
 
         place = Place.objects.get_or_create(
