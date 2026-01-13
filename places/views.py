@@ -10,7 +10,7 @@ def show_index(request):
         "type": "FeatureCollection",
         "features": []
     }
-    
+
     for place in Place.objects.all():
         place_data = {
             "type": "Feature",
@@ -26,7 +26,7 @@ def show_index(request):
                 }
         }
         geojson_data["features"].append(place_data)
-    
+
     context = {
         'geojson_data': geojson_data
     }
@@ -51,4 +51,10 @@ def show_place_data(request, post_id):
             "lng": place.lng,
         }
     }
-    return JsonResponse(place_data)
+    return JsonResponse(
+        place_data,
+        json_dumps_params={
+            'indent': 4,
+            'ensure_ascii': False
+        }
+    )
