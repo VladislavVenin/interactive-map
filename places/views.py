@@ -10,6 +10,7 @@ def show_index(request):
         "type": "FeatureCollection",
         "features": []
     }
+    
     for place in Place.objects.all():
         place_data = {
             "type": "Feature",
@@ -25,6 +26,7 @@ def show_index(request):
                 }
         }
         geojson_data["features"].append(place_data)
+    
     context = {
         'geojson_data': geojson_data
     }
@@ -33,10 +35,12 @@ def show_index(request):
 
 
 def show_place_data(request, post_id):
-    place = get_object_or_404(Place, id=post_id)
+    place = get_object_or_404(Place.objects.prefetch_related('images'), id=post_id)
+
     imgs = []
     for img in place.images.all():
         imgs.append(img.img.url)
+
     place_data = {
         "title": place.title,
         "imgs": imgs,
