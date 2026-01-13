@@ -24,7 +24,7 @@ from places.views import show_index, show_place_data
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', show_index),
-    path("places/<int:post_id>", show_place_data, name="place_data"),
+    path("places/<int:post_id>/", show_place_data, name="place_data"),
     path('tinymce/', include('tinymce.urls')),
 ]
 
