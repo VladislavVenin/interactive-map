@@ -1,10 +1,13 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.core.files import File
-from places.models import Place, PlaceImage
+from decimal import Decimal
 from urllib.parse import urlparse
-import requests
 from requests.exceptions import HTTPError
+import requests
 import os
+
+from django.core.management.base import BaseCommand, CommandError
+from django.core.files.base import ContentFile
+
+from places.models import Place, PlaceImage
 
 
 def get_filename(url):
@@ -12,17 +15,22 @@ def get_filename(url):
     return os.path.basename(path)
 
 
-def create_file(file_path, content):
-    with open(file_path, "wb") as file:
-        file.write(content)
+def add_image_to_db(content, filename, place, order, path):
+    if os.path.exists(path):
+        image = PlaceImage.objects.get(img=filename)
+        image_order = image.order
+        image.delete()
 
-
-def add_image_to_db(file_path, filename, place, order):
-    with open(file_path, 'rb') as file:
         PlaceImage.objects.create(
             place=place,
-            img=File(file, name=filename),
-            order=order
+            img=ContentFile(content, name=filename),
+            order=image_order,
+        )
+    else:
+        PlaceImage.objects.create(
+            place=place,
+            img=ContentFile(content, name=filename),
+            order=order,
         )
 
 
@@ -42,25 +50,35 @@ class Command(BaseCommand):
 
         response_payload = response.json()
 
-        place = Place.objects.get_or_create(
+        lat = Decimal(response_payload["coordinates"]["lat"]).quantize(Decimal('0.000001'))
+        lng = Decimal(response_payload["coordinates"]["lng"]).quantize(Decimal('0.000001'))
+
+        place, created = Place.objects.update_or_create(
             title=response_payload["title"],
-            description_short=response_payload["description_short"],
-            description_long=response_payload["description_long"],
-            lng=response_payload["coordinates"]["lng"],
-            lat=response_payload["coordinates"]["lat"],
+            lng=lat,
+            lat=lng,
+            defaults={
+                "short_description": response_payload["description_short"],
+                "long_description": response_payload["description_long"],
+            }
         )
-        for index, url in enumerate(response_payload["imgs"], start=1):
+        start_index = place.images.count() + 1
+        for index, url in enumerate(response_payload["imgs"], start=start_index):
             image_response = requests.get(url)
             if image_response.status_code == 200:
                 filename = get_filename(url)
-                file_path = f'media/{filename}'
-                if not os.path.exists(file_path):
-                    create_file(file_path, image_response.content)
-                    add_image_to_db(file_path, filename, place[0], index)
-                else:
-                    add_image_to_db(file_path, filename, place[0], index)
-                os.remove(file_path)
+
+                path = f"media/{filename}"
+
+                add_image_to_db(
+                    image_response.content,
+                    filename,
+                    place,
+                    index,
+                    path
+                )
 
         self.stdout.write(
-            self.style.SUCCESS("Новая запись успешно добавлена в БД")
+            self.style.SUCCESS("Новая запись успешно добавлена в БД" if created
+                               else "Запись успешно обновлена в БД")
         )
