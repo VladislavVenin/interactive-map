@@ -40,8 +40,8 @@ def show_place_data(request, post_id):
     place_data = {
         "title": place.title,
         "imgs": imgs,
-        "description_short": place.description_short,
-        "description_long": place.description_long,
+        "description_short": place.short_description,
+        "description_long": place.long_description,
         "coordinates": {
             "lat": place.lat,
             "lng": place.lng,
