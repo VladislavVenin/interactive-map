@@ -15,22 +15,17 @@ def get_filename(url):
     return os.path.basename(path)
 
 
-def add_image_to_db(content, filename, place, order, path):
-    if os.path.exists(path):
-        image = PlaceImage.objects.get(img=filename)
-        image_order = image.order
-        image.delete()
-
+def replace_images(images_links, place):
+    place.images.all().delete()
+    for index, url in enumerate(images_links, start=1):
+        image_response = requests.get(url)
+        if image_response.status_code != 200:
+            continue
+        filename = get_filename(url)
         PlaceImage.objects.create(
             place=place,
-            img=ContentFile(content, name=filename),
-            order=image_order,
-        )
-    else:
-        PlaceImage.objects.create(
-            place=place,
-            img=ContentFile(content, name=filename),
-            order=order,
+            img=ContentFile(image_response.content, name=filename),
+            order=index,
         )
 
 
@@ -55,28 +50,15 @@ class Command(BaseCommand):
 
         place, created = Place.objects.update_or_create(
             title=response_payload["title"],
-            lng=lat,
-            lat=lng,
+            lng=lng,
+            lat=lat,
             defaults={
                 "short_description": response_payload["description_short"],
                 "long_description": response_payload["description_long"],
             }
         )
-        start_index = place.images.count() + 1
-        for index, url in enumerate(response_payload["imgs"], start=start_index):
-            image_response = requests.get(url)
-            if image_response.status_code == 200:
-                filename = get_filename(url)
 
-                path = f"media/{filename}"
-
-                add_image_to_db(
-                    image_response.content,
-                    filename,
-                    place,
-                    index,
-                    path
-                )
+        replace_images(response_payload["imgs"], place)
 
         self.stdout.write(
             self.style.SUCCESS("Новая запись успешно добавлена в БД" if created
